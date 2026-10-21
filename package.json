@@ -1,0 +1,12 @@
+{
+  "name": "nullcat-streamdeck",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Stream Deck plugin with live status tiles and control buttons for the nullCAT EtherCAT motion controller",
+  "license": "MIT",
+  "scripts": {
+    "build": "node src/build.js && esbuild src/plugin.js --bundle --platform=node --target=node20 --outfile=out/nl.haarie.nullcat.sdPlugin/bin/plugin.js && python3 render.py && python3 package.py"
+  },
+  "dependencies": { "ws": "^8.18.0" },
+  "devDependencies": { "esbuild": "^0.25.0" }
+}
