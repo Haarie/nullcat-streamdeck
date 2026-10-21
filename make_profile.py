@@ -4,7 +4,7 @@
 Usage: python3 make_profile.py --device-uuid "@(1)[4057/96/XXXXXXXX]" [--model 20GAA9901]
 Find your device UUID in any existing MK.2 profile's manifest.json (ProfilesV3/*.sdProfile/manifest.json).
 Writes ./profile/<UUID>.sdProfile; copy it into %APPDATA%\\Elgato\\StreamDeck\\ProfilesV3 while Stream Deck is closed.
-Run `npm run build` first (it renders profile_png/).
+Run `npm run build` first (it writes ids.json).
 """
 import argparse, json, os, random, shutil, string, uuid
 
@@ -25,16 +25,13 @@ os.makedirs(f'{root}/Profiles/{CUR}/Images')
 os.makedirs(f'{root}/Profiles/{DEF}/Images')
 actions = {}
 for i in order:
-    img = ''.join(random.choices(string.ascii_uppercase + string.digits, k=27)) + '.png'
-    shutil.copy(f'{S}/profile_png/{i}.png', f'{root}/Profiles/{CUR}/Images/{img}')
     c, r = POS[i]
     actions[f'{c},{r}'] = {
         'ActionID': str(uuid.uuid4()), 'LinkedTitle': True, 'Name': names[i],
         'Plugin': {'Name': 'nullCAT', 'UUID': 'nl.haarie.nullcat', 'Version': '1.0.0.0'},
         'Resources': None, 'Settings': {}, 'State': 0,
-        'States': [{'FontFamily': '', 'FontSize': 12, 'FontStyle': '', 'FontUnderline': False,
-                    'Image': f'Images/{img}', 'OutlineThickness': 2, 'ShowTitle': False,
-                    'TitleAlignment': 'bottom', 'TitleColor': '#ffffff'}],
+        # No 'Image' here on purpose: a custom image in the profile would override the live icons the plugin draws.
+        'States': [{'ShowTitle': False, 'TitleAlignment': 'bottom'}],
         'UUID': f'nl.haarie.nullcat.{i}'}
 dump = lambda o, p: json.dump(o, open(p, 'w'), separators=(',', ':'))
 dump({'Controllers': [{'Actions': actions, 'Type': 'Keypad'}], 'Icon': '', 'Name': ''}, f'{root}/Profiles/{CUR}/manifest.json')
