@@ -50,7 +50,29 @@ function svgUri(svg) {
   return 'data:image/svg+xml;base64,' + Buffer.from(svg, 'utf8').toString('base64');
 }
 
+const encoders = new Set();
+
+function paintEncoder(context, id, force) {
+  const a = ACTIONS[id];
+  if (!a || !a.renderEncoder) return;
+  const f = a.renderEncoder(status);
+  const key = JSON.stringify(f);
+  if (!force && lastImages.get(context) === key) return;
+  lastImages.set(context, key);
+  send({
+    event: 'setFeedback',
+    context,
+    payload: {
+      title: { value: f.title, color: '#f3f6f9' },
+      value: { value: f.value, color: f.color },
+      icon: svgUri(f.icon),
+    },
+  });
+  log('setFeedback', id);
+}
+
 function paint(context, id, force) {
+  if (encoders.has(context)) return paintEncoder(context, id, force);
   const a = ACTIONS[id];
   if (!a) return;
   const svg = a.render(status, phase);
@@ -121,11 +143,14 @@ ws.on('message', (raw) => {
       log('willAppear', m.action);
       if (id && ACTIONS[id]) {
         contexts.set(m.context, id);
+        if (m.payload && m.payload.controller === 'Encoder') encoders.add(m.context);
+        else encoders.delete(m.context);
         paint(m.context, id, true);
       }
       break;
     case 'willDisappear':
       contexts.delete(m.context);
+      encoders.delete(m.context);
       lastImages.delete(m.context);
       break;
     case 'keyDown':

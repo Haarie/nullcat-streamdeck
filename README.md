@@ -28,9 +28,9 @@ Live status tiles and control buttons for [nullCAT](https://github.com/crossthen
 1. Edit the base URL in `src/plugin.js` if your controller is not at `http://nullcat.local:8080`.
 2. `npm install && npm run build` (needs Node 20+ and Python 3 with `playwright` + Chromium for icon rendering).
 3. Double-click `nullCAT.streamDeckPlugin`.
-4. Create the profile: `python3 make_profile.py --device-uuid "<your MK.2 device UUID>"`, copy the generated `profile/*.sdProfile` folder into `%APPDATA%\Elgato\StreamDeck\ProfilesV3` while Stream Deck is **closed**, then start Stream Deck. (Device UUID: see any existing MK.2 profile's `manifest.json`.) Or drag the actions from the **nullCAT** category onto any profile yourself.
+4. Create the profile: `python3 make_profile.py --layout mk2|plus|xl --device-uuid "<your device UUID>"`, copy the generated `profile/*.sdProfile` folder into `%APPDATA%\Elgato\StreamDeck\ProfilesV3` while Stream Deck is **closed**, then start Stream Deck. (Device UUID: see any existing MK.2 profile's `manifest.json`.) Or drag the actions from the **nullCAT** category onto any profile yourself.
 
-Requires Stream Deck 6.4+ on Windows. The profile generator targets a 15-key Stream Deck (model `20GAA9901`).
+Requires Stream Deck 6.4+ on Windows. Profile layouts: `mk2` (15 keys), `plus` (8 keys + 4 dials showing the drive states) and `xl` (32 keys). The XL layout is untested.
 
 ## How it works
 

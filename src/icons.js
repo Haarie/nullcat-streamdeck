@@ -262,6 +262,23 @@ for (let i = 0; i < 4; i++) {
       const text = (dv.ind && (dv.ind.text || dv.ind.state) ? String(dv.ind.text || dv.ind.state) : 'offline').toUpperCase().slice(0, 11);
       return tile({ glyph: GLYPHS.car(col, i, col), label, sub: dv.ind && dv.ind.fault ? 'FAULT' : text, color: col, led: col === C.off ? null : col });
     },
+    // Stream Deck + dial / touch strip: layout $B1 (title, icon, value)
+    renderEncoder(st) {
+      const dv = st && st.drives && st.drives[i];
+      const title = shortName(dv && dv.name, i);
+      let col = C.off;
+      let value = 'NO LINK';
+      if (st && dv) {
+        col = driveColor(dv.ind);
+        value = dv.ind && dv.ind.fault ? 'FAULT' : String((dv.ind && (dv.ind.text || dv.ind.state)) || 'offline').toUpperCase().slice(0, 11);
+      } else if (st) {
+        value = 'N/A';
+      } else {
+        col = C.bad;
+      }
+      const icon = `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="-40 -40 80 80">${GLYPHS.car(col, i, col)}</svg>`;
+      return { title, value, icon, color: col };
+    },
   };
 }
 
