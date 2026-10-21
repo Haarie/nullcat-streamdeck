@@ -42,7 +42,7 @@ const manifest = {
   SDKVersion: 2,
   Author: 'Haarie',
   Name: 'nullCAT',
-  Version: '1.0.0.0',
+  Version: '1.0.1.0',
   UUID: 'nl.haarie.nullcat',
   Description: 'Live status tiles and control buttons for the nullCAT EtherCAT motion controller (http://nullcat.local:8080).',
   Category: 'nullCAT',

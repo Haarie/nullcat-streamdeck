@@ -1,4 +1,6 @@
 // nullCAT Stream Deck plugin: live status tiles + command buttons for the nullCAT web API.
+const fs = require('fs');
+const path = require('path');
 const WebSocket = require('ws');
 const { ACTIONS } = require('./icons');
 
@@ -21,6 +23,18 @@ if (!port || !pluginUUID || !registerEvent) {
   process.exit(1);
 }
 
+// Small rolling log next to the plugin (helps debugging; Stream Deck doesn't capture plugin output).
+const LOG = path.join(__dirname, '..', 'nullcat.log');
+function log(...a) {
+  try {
+    if (fs.existsSync(LOG) && fs.statSync(LOG).size > 100000) fs.writeFileSync(LOG, '');
+    fs.appendFileSync(LOG, `${new Date().toISOString()} ${a.join(' ')}\n`);
+  } catch { /* ignore */ }
+}
+process.on('uncaughtException', (e) => log('uncaughtException', e && e.stack));
+process.on('unhandledRejection', (e) => log('unhandledRejection', e && e.stack));
+log('start', BASE, 'node', process.version);
+
 const ws = new WebSocket(`ws://127.0.0.1:${port}`);
 const send = (o) => ws.readyState === WebSocket.OPEN && ws.send(JSON.stringify(o));
 
@@ -30,9 +44,10 @@ let status = null;
 let phase = false;
 let lastImages = new Map();
 let polling = false;
+let lastOk = null;
 
 function svgUri(svg) {
-  return 'data:image/svg+xml;charset=utf8,' + encodeURIComponent(svg);
+  return 'data:image/svg+xml;base64,' + Buffer.from(svg, 'utf8').toString('base64');
 }
 
 function paint(context, id, force) {
@@ -42,6 +57,7 @@ function paint(context, id, force) {
   if (!force && lastImages.get(context) === svg) return;
   lastImages.set(context, svg);
   send({ event: 'setImage', context, payload: { image: svgUri(svg), target: 0 } });
+  log('setImage', id);
 }
 
 function paintAll(force) {
@@ -58,6 +74,8 @@ async function poll() {
     status = null;
   }
   polling = false;
+  const ok = !!status;
+  if (ok !== lastOk) { log('poll', ok ? 'ok' : 'FAILED (cannot reach ' + BASE + ')'); lastOk = ok; }
   phase = !phase;
   paintAll(false);
 }
@@ -100,6 +118,7 @@ ws.on('message', (raw) => {
   const id = m.action && m.action.startsWith(PREFIX) ? m.action.slice(PREFIX.length) : null;
   switch (m.event) {
     case 'willAppear':
+      log('willAppear', m.action);
       if (id && ACTIONS[id]) {
         contexts.set(m.context, id);
         paint(m.context, id, true);
@@ -121,5 +140,5 @@ ws.on('message', (raw) => {
   }
 });
 
-ws.on('close', () => process.exit(0));
-ws.on('error', (e) => console.error('ws error', e.message));
+ws.on('close', () => { log('ws closed'); process.exit(0); });
+ws.on('error', (e) => log('ws error', e.message));
